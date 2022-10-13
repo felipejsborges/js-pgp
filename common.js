@@ -42,6 +42,9 @@ function hybridEncrypt(payload, publicKey) {
 	const key = forge.random.getBytesSync(16);
 	const iv = forge.random.getBytesSync(16);
 	const symmetricEncryptedPayload = symmetricEncrypt(payload, key, iv)
+	if (typeof publicKey === 'string') {
+		publicKey = publicKeyFromPem(publicKey)
+	}
 	const rsaEncryptedPayload = publicKey.encrypt(JSON.stringify({ key, iv }))
 	const base64EncodedRsaEncryptedPayload = forge.util.encode64(rsaEncryptedPayload)
 	return { symmetric: symmetricEncryptedPayload, asymmetric: base64EncodedRsaEncryptedPayload }
@@ -50,6 +53,9 @@ function hybridEncrypt(payload, publicKey) {
 function hybridDecrypt(encryptedPayload, privateKey) {
 	const { symmetric, asymmetric } = encryptedPayload
 	const base64DecodedAsymmetric = forge.util.decode64(asymmetric)
+	if (typeof privateKey === 'string') {
+		privateKey = privateKeyFromPem(privateKey)
+	}
 	const rsaDecryptedPayload = privateKey.decrypt(base64DecodedAsymmetric)
 	const { key, iv } = JSON.parse(rsaDecryptedPayload)
 	const symmetricDecryptedPayload = symmetricDecrypt(symmetric, key, iv)
